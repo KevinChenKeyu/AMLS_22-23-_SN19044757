@@ -1,30 +1,113 @@
-import cv2
 import os
+import numpy as np
+from keras_preprocessing import image
+import cv2
+
+import dlib
+
+# PATH TO ALL IMAGES
+global basedir, image_paths, target_size
+basedir = 'lab3_data/dataset'
+images_dir = os.path.join(basedir,'celeba')
+labels_filename = 'labels.csv'
+
+detector = dlib.get_frontal_face_detector()
+predictor = dlib.shape_predictor('lab3_data/shape_predictor_68_face_landmarks.dat')
 
 
-def mouthdetection():
-    pic = cv2.imread('../Datasets/celeba/img/0.jpg')
-    haarface = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-    haarmouth = cv2.CascadeClassifier('haarcascade_mouth.xml')
-    face = haarface.detectMultiScale(pic, 1.2, 2, cv2.CASCADE_SCALE_IMAGE, (20, 20))
-    if len(face) > 0: # face detected
-        for rectface in face:
-            x, y, w, h = rectface
-            intx = int(x)
-            inty = int(y)
-            intw = int(w)
-            inth = int(h)
-            mouth1 = int(float(y + 0.7 * h))
-            mouth2 = int(0.4 * h)
-            halfface_down = pic[mouth1:(mouth1 + mouth2), intx:intx + intw]
-            cv2.rectangle(pic, (int(x) ,mouth1), (int(x) + int(w), mouth1 + mouth2), (0, 255, 0), 2, 0)
-            mouth = haarmouth.detectMultiScale(halfface_down, 1.1, 1, cv2.CASCADE_SCALE_IMAGE, (5, 20))
-            if len(mouth) > 0: #mouth detected
-                for rectmouth in mouth:
-                    xm, ym, wm, hm = rectmouth
-                    cv2.rectangle(halfface_down, (int(xm), int(ym)), (int(xm) + int(wm), int(ym) + int(hm)), (0, 0, 255), 2, 0)
+def shape_to_np(shape, dtype="int"):
+    # initialize the list of (x, y)-coordinates
+    coords = np.zeros((shape.num_parts, 2), dtype=dtype)
+
+    # loop over all facial landmarks and convert them
+    # to a 2-tuple of (x, y)-coordinates
+    for i in range(0, shape.num_parts):
+        coords[i] = (shape.part(i).x, shape.part(i).y)
+
+    # return the list of (x, y)-coordinates
+    return coords
+
+def rect_to_bb(rect):
+    # take a bounding predicted by dlib and convert it
+    # to the format (x, y, w, h) as we would normally do
+    # with OpenCV
+    x = rect.left()
+    y = rect.top()
+    w = rect.right() - x
+    h = rect.bottom() - y
+
+    # return a tuple of (x, y, w, h)
+    return (x, y, w, h)
 
 
+def run_dlib_shape(image):
+    # in this function we load the image, detect the landmarks of the face, and then return the image and the landmarks
+    # load the input image, resize it, and convert it to grayscale
+    resized_image = image.astype('uint8')
 
-mouthdetection()
+    gray = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
+    gray = gray.astype('uint8')
+
+    # detect faces in the grayscale image
+    rects = detector(gray, 1)
+    num_faces = len(rects)
+
+    if num_faces == 0:
+        return None, resized_image
+
+    face_areas = np.zeros((1, num_faces))
+    face_shapes = np.zeros((136, num_faces), dtype=np.int64)
+
+    # loop over the face detections
+    for (i, rect) in enumerate(rects):
+        # determine the facial landmarks for the face region, then
+        # convert the facial landmark (x, y)-coordinates to a NumPy
+        # array
+        temp_shape = predictor(gray, rect)
+        temp_shape = shape_to_np(temp_shape)
+
+        # convert dlib's rectangle to a OpenCV-style bounding box
+        # [i.e., (x, y, w, h)],
+        #   (x, y, w, h) = face_utils.rect_to_bb(rect)
+        (x, y, w, h) = rect_to_bb(rect)
+        face_shapes[:, i] = np.reshape(temp_shape, [136])
+        face_areas[0, i] = w * h
+    # find largest face and keep
+    dlibout = np.reshape(np.transpose(face_shapes[:, np.argmax(face_areas)]), [68, 2])
+
+    return dlibout, resized_image
+
+def extract_features_labels():
+    """
+    This funtion extracts the landmarks features for all images in the folder 'dataset/celeba'.
+    It also extract the gender label for each image.
+    :return:
+        landmark_features:  an array containing 68 landmark points for each image in which a face was detected
+        gender_labels:      an array containing the gender label (male=0 and female=1) for each image in
+                            which a face was detected
+    """
+    image_paths = [os.path.join(images_dir, l) for l in os.listdir(images_dir)]
+    target_size = None
+    labels_file = open(os.path.join(basedir, labels_filename), 'r')
+    lines = labels_file.readlines()
+    gender_labels = {line.split(',')[0] : int(line.split(',')[6]) for line in lines[2:]}
+    if os.path.isdir(images_dir):
+        all_features = []
+        all_labels = []
+        for img_path in image_paths:
+            file_name = img_path.split('.')[0].split("\\")[-1]
+
+            # load image
+            img = image.img_to_array(
+                image.load_img(img_path,
+                               target_size=target_size,
+                               interpolation='bicubic'))
+            features, _ = run_dlib_shape(img)
+            if features is not None:
+                all_features.append(features)
+                all_labels.append(gender_labels[file_name])
+
+    landmark_features = np.array(all_features)
+    gender_labels = (np.array(all_labels) + 1)/2 # simply converts the -1 into 0, so male=0 and female=1
+    return landmark_features, gender_labels
 
