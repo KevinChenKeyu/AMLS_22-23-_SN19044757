@@ -1,9 +1,9 @@
 from importlib.machinery import SourceFileLoader
 import tensorflow._api.v2.compat.v1 as tf
-import extractface as import_data
+from A1 import extractface as import_data
 import numpy as np
 
-somemodule = SourceFileLoader('lab3_data', '../extractface.py').load_module()
+#somemodule = SourceFileLoader('lab3_data', 'extractface.py').load_module()
 
 tf.disable_v2_behavior()
 
@@ -11,10 +11,12 @@ tf.disable_v2_behavior()
 def get_data():
     X, y = import_data.extract_features_labels()
     Y = np.array([y, -(y - 1)]).T
+    X_t, y_t = import_data.extract_features_labels_test()
+    Y_t =np.array([y_t, -(y_t - 1)]).T
     tr_X = X[:100] ; tr_Y = Y[:100]
     te_X = X[100:] ; te_Y = Y[100:]
 
-    return tr_X, tr_Y, te_X, te_Y
+    return X, Y, X_t, Y_t
 
 
 def allocate_weights_and_biases():
