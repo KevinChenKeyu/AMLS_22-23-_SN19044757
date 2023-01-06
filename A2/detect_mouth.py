@@ -5,14 +5,20 @@ import cv2
 
 import dlib
 
-# PATH TO ALL IMAGES
+# PATH TO TRAINING IMAGES
 global basedir, image_paths, target_size
-basedir = 'lab3_data/dataset'
-images_dir = os.path.join(basedir,'celeba')
+basedir = '../Datasets/celeba'
+images_dir = os.path.join(basedir,'img')
 labels_filename = 'labels.csv'
 
+# path to testing images
+global basedir_t, image_paths_t, target_size_t
+basedir_t = '../Datasets/celeba_test'
+images_dir_t = os.path.join(basedir_t,'img')
+labels_filename_t = 'labels.csv'
+
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('lab3_data/shape_predictor_68_face_landmarks.dat')
+predictor = dlib.shape_predictor('../shape_predictor_68_face_landmarks.dat')
 
 
 def shape_to_np(shape, dtype="int"):
@@ -89,14 +95,34 @@ def extract_features_labels():
     image_paths = [os.path.join(images_dir, l) for l in os.listdir(images_dir)]
     target_size = None
     labels_file = open(os.path.join(basedir, labels_filename), 'r')
+    gender_labels = {}
     lines = labels_file.readlines()
-    gender_labels = {line.split(',')[0] : int(line.split(',')[6]) for line in lines[2:]}
+    # checker1 = lines[5][-6] # -
+    # checker2 = lines[5][-3:] # -1
+    # checker3 = lines[1][-2:] # 1
+    # for index,line in enumerate(lines):
+    #     if line[-3:] == checker2 and line[-6] == checker1: # -1 -1
+    #         gender_labels.update({index-1: -1})
+    #     if line[-3:] == checker2 and line[-6] != checker1: # 1 -1
+    #         gender_labels.update({index-1: 1})
+    #     if line[-2:] == checker3 and line[-5] == checker1: # -1  1
+    #         gender_labels.update({index-1: -1})
+    #     if line[-2:] == checker3 and line[-5] != checker1 and line[-6] != checker1: # 1 1
+    #         gender_labels.update({index-1: 1})
+    checker1 = lines[5][-6]
+    for index, line in enumerate(lines):
+        if line[-3] == checker1:
+            gender_labels.update({index-1 : -1})
+        else:
+            gender_labels.update({index-1: 1})
+    gender_labels.pop(-1)
+    #print(gender_labels)
     if os.path.isdir(images_dir):
         all_features = []
         all_labels = []
         for img_path in image_paths:
-            file_name = img_path.split('.')[0].split("\\")[-1]
-
+            file_name = int(img_path.split("\\")[-1].split('.')[0])
+            #print(file_name)
             # load image
             img = image.img_to_array(
                 image.load_img(img_path,
@@ -111,3 +137,35 @@ def extract_features_labels():
     gender_labels = (np.array(all_labels) + 1)/2 # simply converts the -1 into 0, so male=0 and female=1
     return landmark_features, gender_labels
 
+
+def extract_features_labels_test():
+    image_paths_t = [os.path.join(images_dir_t, x) for x in os.listdir(images_dir_t)]
+    target_size_t = None
+    labels_file_t = open(os.path.join(basedir_t, labels_filename_t), 'r')
+    genderlabels_t = {}
+    lines_t = labels_file_t.readlines()
+    checker1 = lines_t[5][-6]
+    for index, line in enumerate(lines_t):
+        if line[-3] == checker1:
+            genderlabels_t.update({index - 1: -1})
+        else:
+            genderlabels_t.update({index - 1: 1})
+    genderlabels_t.pop(-1)
+
+    if os.path.isdir(images_dir_t):
+        allfeatures = []
+        alllabels = []
+        for img_path in image_paths_t:
+            file_name = int(img_path.split("\\")[-1].split('.')[0])
+            img = image.img_to_array(
+                image.load_img(img_path,
+                               target_size=target_size_t,
+                               interpolation='bicubic'))
+            features, _ = run_dlib_shape(img)
+            if features is not None:
+                allfeatures.append(features)
+                alllabels.append(genderlabels_t[file_name])
+
+    landmark_features = np.array(allfeatures)
+    gender_labels = (np.array(alllabels) + 1) / 2  # simply converts the -1 into 0, so male=0 and female=1
+    return landmark_features, gender_labels

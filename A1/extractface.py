@@ -109,13 +109,13 @@ def extract_features_labels():
             gender_labels.update({index-1: -1})
         if line[-2:] == checker3 and line[-5] != checker1 and line[-6] != checker1: # 1 1
             gender_labels.update({index-1: 1})
-
+    print(gender_labels)
     if os.path.isdir(images_dir):
         all_features = []
         all_labels = []
         for img_path in image_paths:
-            file_name =int(img_path.split("\\")[-1].split('.')[0])
-
+            file_name = int(img_path.split("\\")[-1].split('.')[0])
+            print(file_name)
             # load image
             img = image.img_to_array(
                 image.load_img(img_path,
