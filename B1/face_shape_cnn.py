@@ -2,6 +2,9 @@ import tensorflow._api.v2.compat.v1 as tf
 import numpy as np
 import cv2
 
+from B1 import extract_data_cnn
+
+tf.disable_v2_behavior()
 
 # training parametres
 learning_rate = 0.0001
@@ -12,15 +15,19 @@ batch_size = 2048
 # net work parametres
 num_in = 250000  # resolution of pictures is 500*500
 num_classes = 5  # 5 kinds of face shape
-dropout = 0.25  # Drop out, probability to dro a unit
+dropout = 0.25  # Drop out, probability to drop a unit
+
+
+X, Y = extract_data_cnn.get_train_data()
+
 
 def set_conv(x_dict, n_classes, dropout, reuse, istraining): # set up CNN
 
     with tf.variable_scope('ConvNet', reuse=reuse):
         x = x_dict['images']
 
-        x = tf.reshape(x, shape=[-1, 28, 28, 1])
-
+        x = tf.reshape(x, shape=[-1, 500, 500, 3])
+        print(type(x))
         layer_1 = tf.keras.layers.Conv2D(x, 32, 5, activation=tf.nn.relu)
         layer_1 = tf.keras.layers.MaxPooling2D(layer_1, 2, 2)
 
@@ -70,7 +77,10 @@ def model_function(features, labels, mode):
 
 model = tf.estimator.Estimator(model_function)
 
-input_function = tf.estimator.inputs.numpy_input_fn()
+input_function = tf.compat.v1.estimator.inputs.numpy_input_fn(
+    x={'images': X}, y=Y, batch_size=batch_size, num_epochs=None, shuffle=True)
+
+model.train(input_function, steps=num_steps)
 
 
 

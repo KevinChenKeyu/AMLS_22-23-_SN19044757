@@ -135,6 +135,7 @@ def extract_features_labels():
 
     landmark_features = np.array(all_features)
     gender_labels = (np.array(all_labels) + 1)/2 # simply converts the -1 into 0, so male=0 and female=1
+    print(np.shape(landmark_features))
     return landmark_features, gender_labels
 
 
