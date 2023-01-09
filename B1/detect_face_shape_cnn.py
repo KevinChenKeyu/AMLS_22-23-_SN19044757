@@ -6,34 +6,52 @@ from B1 import extract_data_cnn as data_required
 
 num_class = 5 # 5 kind of face shape
 
-learning_rate = 0.0001
-training_steps = 200
-batch_size = 50
+learning_rate = 0.001
+training_steps = 500
+batch_size = 128
 display_step = 10
 
 filter1 = 32
 filter2 = 64
 fully_connect_1 = 1024
 
+#from keras.datasets import mnist
+#(x_train, y_train), (x_test, y_test) = mnist.load_data()
+# Convert to float32.
+#x_train, x_test = np.array(x_train, np.float32), np.array(x_test, np.float32)
+# Normalize images value from [0, 255] to [0, 1].
+#x_train, x_test = x_train / 255., x_test / 255.
+# Use tf.data API to shuffle and batch data.
+#train_img = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+#train_img = train_img.repeat().shuffle(5000).batch(batch_size).prefetch(1)
 X, Y = data_required.get_train_data()
 
 train_img = tf.data.Dataset.from_tensor_slices((X, Y))
-train_img = train_img.repeat().shuffle(100).batch(batch_size).prefetch(1)
+train_img = train_img.repeat().batch(batch_size).prefetch(1)
 
 
 class CONVOLUTION(Model):
     def __init__(self):
         super(CONVOLUTION, self).__init__()
-
-        self.conv1 = layers.Conv2D(32, kernel_size=5, activation=tf.nn.relu)
+        channel = 3
+        self.conv1 = layers.Conv2D(16, kernel_size=3, activation=tf.nn.relu, padding="valid", input_shape=(500, 500, 3))
         self.maxpool1 = layers.MaxPool2D(2, strides=2)
 
-        self.conv2 = layers.Conv2D(64, kernel_size=3, activation=tf.nn.relu)
+        self.conv2 = layers.Conv2D(16, kernel_size=3, activation=tf.nn.relu, padding="valid")
         self.maxpool2 = layers.MaxPool2D(2, strides=2)
+
+        self.conv3 = layers.Conv2D(16, kernel_size=3, activation=tf.nn.relu, padding="valid")
+        self.maxpool3 = layers.MaxPool2D(2, strides=2)
+
+        self.conv4 = layers.Conv2D(16, kernel_size=3, activation=tf.nn.relu, padding="valid")
+        self.maxpool4 = layers.MaxPool2D(2, strides=2)
+
+        self.conv5 = layers.Conv2D(16, kernel_size=3, activation=tf.nn.relu, padding="valid")
+        self.maxpool5 = layers.MaxPool2D(2, strides=2)
 
         self.flatten = layers.Flatten()
 
-        self.fully_connect1 = layers.Dense(2048)
+        self.fully_connect1 = layers.Dense(1024)
 
         self.dropout = layers.Dropout(rate=0.5)
         self.out = layers.Dense(num_class)
@@ -45,6 +63,12 @@ class CONVOLUTION(Model):
         x = self.maxpool1(x)
         x = self.conv2(x)
         x = self.maxpool2(x)
+        x = self.conv3(x)
+        x = self.maxpool3(x)
+        x = self.conv4(x)
+        x = self.maxpool4(x)
+        x = self.conv5(x)
+        x = self.maxpool5(x)
         x = self.flatten(x)
         x = self.fully_connect1(x)
         x = self.dropout(x, training=is_training)

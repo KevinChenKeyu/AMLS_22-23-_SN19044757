@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import cv2
+import tensorflow as tf
 import os
 import random
 from keras.preprocessing import image
@@ -36,17 +37,22 @@ def get_train_data():
 
 
     for img_path in image_paths[:500]:
+        input_image = Image.open(img_path).convert("RGB")
+        input_image = tf.convert_to_tensor(input_image)
+        trainData.append(input_image)
 
         #print(file_name)
         # load image
 
-        img = cv2.imread(img_path)
+        #img = cv2.imread(img_path)
 
 
-        trainData.append(img/500)
+        #trainData.append(img/255.)
 
     trainLabel = np.array(trainLabel, np.float32)
     trainData = np.array(trainData, np.float32)
+    print(type(trainData))
+    print(np.shape(trainData))
 
     return trainData, trainLabel
 
