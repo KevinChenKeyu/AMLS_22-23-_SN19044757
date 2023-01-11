@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
 from torch import nn
-from B1 import extract_data_cnn as get_data
+from B2 import extract as get_data
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -97,9 +97,3 @@ for i in range(epoch):
     print("loss: %s" % (loss_of_epoch))
     print("Training_accuracy: %s" % accuracy)
     print("test accuracy: %s" % test_accuracy)
-
-
-
-
-
-

@@ -28,7 +28,7 @@ def get_train_data():
         scan = csv.reader(labels, delimiter="\t")
         trainLabel = list(scan)
         for i in range(10000):
-            trainLabels.append(int(trainLabel[i+1][2]))
+            trainLabels.append(int(trainLabel[i+1][1]))
     trainLabels = torch.tensor(trainLabels).to(device)
     for j in range(10000):
         image_path = os.path.join(images_dir, "%s.png" % j)
@@ -53,7 +53,7 @@ def get_test_data():
         scan = csv.reader(labels, delimiter="\t")
         testLabel = list(scan)
         for i in range(2500):
-            testLabels.append(int(testLabel[i+1][2]))
+            testLabels.append(int(testLabel[i+1][1]))
     testLabels = torch.tensor(testLabels).to(device)
     for j in range(2500):
         image_path_t = os.path.join(images_dir_t, "%s.png" % j)
@@ -69,10 +69,3 @@ def get_test_data():
     #print(type(trainLabels))
     #print(type(trainData))
     return testData, testLabels
-
-
-
-
-
-
-
