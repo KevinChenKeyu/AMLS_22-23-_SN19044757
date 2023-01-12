@@ -11,15 +11,15 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 global basedir, image_paths, target_size
-basedir = '../Datasets/cartoon_set'
+basedir = './Datasets/cartoon_set'
 images_dir = os.path.join(basedir,'img')
-labels_dir = '../Datasets/cartoon_set/labels.csv'
+labels_dir = './Datasets/cartoon_set/labels.csv'
 
 # path to testing images
 global basedir_t, image_paths_t, target_size_t
-basedir_t = '../Datasets/cartoon_set_test'
+basedir_t = './Datasets/cartoon_set_test'
 images_dir_t = os.path.join(basedir_t,'img')
-labels_dir_t = '../Datasets/cartoon_set_test/labels.csv'
+labels_dir_t = './Datasets/cartoon_set_test/labels.csv'
 
 def get_train_data():
     trainData = []

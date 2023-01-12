@@ -7,18 +7,18 @@ import dlib
 
 # PATH TO TRAINING IMAGES
 global basedir, image_paths, target_size
-basedir = '../Datasets/celeba'
+basedir = './Datasets/celeba'
 images_dir = os.path.join(basedir,'img')
 labels_filename = 'labels.csv'
 
 # path to testing images
 global basedir_t, image_paths_t, target_size_t
-basedir_t = '../Datasets/celeba_test'
+basedir_t = './Datasets/celeba_test'
 images_dir_t = os.path.join(basedir_t,'img')
 labels_filename_t = 'labels.csv'
 
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('../shape_predictor_68_face_landmarks.dat')
+predictor = dlib.shape_predictor('./shape_predictor_68_face_landmarks.dat')
 
 
 def shape_to_np(shape, dtype="int"):
@@ -128,6 +128,7 @@ def extract_features_labels():
 
     landmark_features = np.array(all_features)
     gender_labels = (np.array(all_labels) + 1)/2 # simply converts the -1 into 0, so male=0 and female=1
+    print(np.shape(landmark_features))
     return landmark_features, gender_labels
 
 
@@ -167,3 +168,5 @@ def extract_features_labels_test():
     landmark_features = np.array(allfeatures)
     gender_labels = (np.array(alllabels) + 1) / 2  # simply converts the -1 into 0, so male=0 and female=1
     return landmark_features, gender_labels
+extract_features_labels()
+

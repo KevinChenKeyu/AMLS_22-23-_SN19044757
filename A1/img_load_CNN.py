@@ -5,21 +5,23 @@ import torch
 import numpy as np
 
 import os
-
+from torchvision import transforms
 from PIL import Image
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 global basedir, image_paths, target_size
-basedir = './Datasets/cartoon_set'
+basedir = './Datasets/celeba'
 images_dir = os.path.join(basedir,'img')
-labels_dir = './Datasets/cartoon_set/labels.csv'
+labels_dir = './Datasets/celeba/labels.csv'
 
 # path to testing images
 global basedir_t, image_paths_t, target_size_t
-basedir_t = './Datasets/cartoon_set_test'
+basedir_t = './Datasets/celeba_test'
 images_dir_t = os.path.join(basedir_t,'img')
-labels_dir_t = './Datasets/cartoon_set_test/labels.csv'
+labels_dir_t = './Datasets/celeba_test/labels.csv'
+
+transform = transforms.Compose([    transforms.CenterCrop((178, 178))])
 
 def get_train_data():
     trainData = []
@@ -27,17 +29,21 @@ def get_train_data():
     with open (labels_dir, "r") as labels:
         scan = csv.reader(labels, delimiter="\t")
         trainLabel = list(scan)
-        for i in range(10000):
-            trainLabels.append(int(trainLabel[i+1][1]))
+        for i in range(5000):
+            trainLabels.append(int((int(trainLabel[i+1][2])+1)/2))
+    #trainLabels = (np.array(trainLabels) + 1)/2
+    #trainLabels = np.array(trainLabels, np.)
     trainLabels = torch.tensor(trainLabels).to(device)
-    for j in range(10000):
-        image_path = os.path.join(images_dir, "%s.png" % j)
+    for j in range(5000):
+        image_path = os.path.join(images_dir, "%s.jpg" % j)
         image = PIL.Image.open(image_path).convert("RGB")
-        image = image.resize((64, 64), Image.ANTIALIAS)
+        image = transform(image)
+        image = image.resize((128, 128), Image.ANTIALIAS)
 
         image = tf.convert_to_tensor(image)
         trainData.append(image)
         #print(trainData)
+
     trainData = np.array(trainData, np.float32)
     #print(np.shape(trainData))
     trainData = torch.tensor(trainData)
@@ -52,13 +58,17 @@ def get_test_data():
     with open (labels_dir_t, "r") as labels:
         scan = csv.reader(labels, delimiter="\t")
         testLabel = list(scan)
-        for i in range(2500):
-            testLabels.append(int(testLabel[i+1][1]))
+        for i in range(1000):
+            testLabels.append(int((int(testLabel[i+1][2])+1)/2))
+    #testLabels = (np.array(testLabels) + 1) / 2
+    #testLabels = np.array(testLabels, np.long)
+
     testLabels = torch.tensor(testLabels).to(device)
-    for j in range(2500):
-        image_path_t = os.path.join(images_dir_t, "%s.png" % j)
+    for j in range(1000):
+        image_path_t = os.path.join(images_dir_t, "%s.jpg" % j)
         image = PIL.Image.open(image_path_t).convert("RGB")
-        image = image.resize((64, 64), Image.ANTIALIAS)
+        image = transform(image)
+        image = image.resize((128, 128), Image.ANTIALIAS)
 
         image = tf.convert_to_tensor(image)
         testData.append(image)

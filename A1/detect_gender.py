@@ -1,4 +1,4 @@
-from importlib.machinery import SourceFileLoader
+
 import tensorflow._api.v2.compat.v1 as tf
 from A1 import extractface as import_data
 import numpy as np
@@ -126,3 +126,4 @@ with tf.Session() as sess:
     # complete code below
     # run test accuracy operation ..
     print("Test Accuracy:", accuracy.eval({X: test_images, Y: test_labels}))
+

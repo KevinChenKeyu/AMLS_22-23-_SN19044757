@@ -7,18 +7,18 @@ import dlib
 
 # PATH TO TRAINING IMAGES
 global basedir, image_paths, target_size
-basedir = '../Datasets/celeba'
+basedir = './Datasets/celeba'
 images_dir = os.path.join(basedir,'img')
 labels_filename = 'labels.csv'
 
 # path to testing images
 global basedir_t, image_paths_t, target_size_t
-basedir_t = '../Datasets/celeba_test'
+basedir_t = './Datasets/celeba_test'
 images_dir_t = os.path.join(basedir_t,'img')
 labels_filename_t = 'labels.csv'
 
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('../shape_predictor_68_face_landmarks.dat')
+predictor = dlib.shape_predictor('./shape_predictor_68_face_landmarks.dat')
 
 
 def shape_to_np(shape, dtype="int"):
