@@ -84,7 +84,7 @@ loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
     logits=logits, labels=Y))
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
-# define training graph operation
+
 train_op = optimizer.minimize(loss_op)
 
 # graph operation to initialize all variables
@@ -103,10 +103,10 @@ with tf.Session() as sess:
         print("Epoch:", '%04d' % (epoch + 1), "cost={:.9f}".format(cost))
 
         if epoch % display_accuracy_step == 0:
-            pred = tf.nn.softmax(logits)  # Apply softmax to logits
+            pred = tf.nn.softmax(logits)
             correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(Y, 1))
 
-            # calculate training accuracy
+
             accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
             print("Accuracy: {:.3f}".format(accuracy.eval({X: training_images, Y: training_labels})))
 

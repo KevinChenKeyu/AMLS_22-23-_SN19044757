@@ -10,19 +10,19 @@ from A2 import Extract_face_CNN as get_data
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 num_class = 2
-epoch = 100
+epoch = 50
 
 learning_rate = 0.0001
 
 x_train, y_train = get_data.get_train_data()
-print(y_train)
+#print(y_train)
 x_train = x_train.reshape(5000, 3, 128, 128)
 #print(np.shape(x_train))
 train = torch.utils.data.TensorDataset(x_train, y_train)
 train_data = DataLoader(train, batch_size=128, shuffle=True)
 
 x_test, y_test = get_data.get_test_data()
-print(y_test)
+#print(y_test)
 x_test = x_test.reshape(1000, 3, 128, 128)
 test_set = torch.utils.data.TensorDataset(x_test, y_test)
 
@@ -48,9 +48,9 @@ class Conv_net(nn.Module):
 
             nn.Flatten(),
 
-            nn.Linear(256 * 4 * 4, 128 * 4 * 4),
-            nn.Linear(128 * 4 * 4, 64 * 4 * 4),
-            nn.Linear(64 * 4 * 4, num_class)
+            nn.Linear(4096, 2048),
+            nn.Linear(2048, 1024),
+            nn.Linear(1024, num_class)
         )
 
     def forward(self, x):

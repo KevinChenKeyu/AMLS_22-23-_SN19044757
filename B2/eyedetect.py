@@ -1,5 +1,5 @@
 import torch
-
+import livelossplot
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
@@ -10,12 +10,12 @@ from B2 import extract as get_data
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 num_class = 5
-epoch = 100
+epoch = 50
 
 learning_rate = 0.001
 
 x_train, y_train = get_data.get_train_data()
-x_train = x_train.reshape(10000, 3, 64, 64)
+x_train = x_train.reshape(10000, 3, 64, 64) # match the size required for the convolution
 #print(np.shape(x_train))
 train = torch.utils.data.TensorDataset(x_train, y_train)
 train_data = DataLoader(train, batch_size=128, shuffle=True)
@@ -46,9 +46,9 @@ class Conv_net(nn.Module):
 
             nn.Flatten(),
 
-            nn.Linear(256*2*2, 64*2*2),
-            nn.Linear(64*2*2, 32*2*2),
-            nn.Linear(32*2*2, num_class)
+            nn.Linear(1024, 256),
+            nn.Linear(256, 128),
+            nn.Linear(128, num_class)
         )
 
     def forward(self, x):
@@ -65,7 +65,7 @@ def losses(pred, correct):
     return get_loss(pred, correct)
 
 optimizer = torch.optim.Adam(convolution.parameters(), lr=learning_rate, weight_decay=0.00001)
-
+accu = livelossplot.PlotLosses()
 for i in range(epoch):
     loss_fin = 0
     accuracy = 0
@@ -92,8 +92,9 @@ for i in range(epoch):
             num_correct += 1
     test_accuracy = num_correct / len(test_set)
     loss_of_epoch = loss_fin / len(train_data)
-
+    accu.update({"test accuracy": test_accuracy})
     print("Epoch: %s" % (i))
     print("loss: %s" % (loss_of_epoch))
     print("Training_accuracy: %s" % accuracy)
     print("test accuracy: %s" % test_accuracy)
+accu.send()

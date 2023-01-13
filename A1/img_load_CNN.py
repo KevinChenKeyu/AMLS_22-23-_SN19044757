@@ -21,19 +21,19 @@ basedir_t = './Datasets/celeba_test'
 images_dir_t = os.path.join(basedir_t,'img')
 labels_dir_t = './Datasets/celeba_test/labels.csv'
 
-transform = transforms.Compose([    transforms.CenterCrop((178, 178))])
+transform = transforms.Compose([    transforms.CenterCrop((178, 178))]) # cut the image to 178*178
 
-def get_train_data():
+def get_train_data(): # transfer iamges and labels to suitable size and convert to tensor
     trainData = []
     trainLabels = []
     with open (labels_dir, "r") as labels:
         scan = csv.reader(labels, delimiter="\t")
         trainLabel = list(scan)
         for i in range(5000):
-            trainLabels.append(int((int(trainLabel[i+1][2])+1)/2))
+            trainLabels.append(int((int(trainLabel[i+1][2])+1)/2)) # get 3rd column of csv data
     #trainLabels = (np.array(trainLabels) + 1)/2
     #trainLabels = np.array(trainLabels, np.)
-    trainLabels = torch.tensor(trainLabels).to(device)
+    trainLabels = torch.tensor(trainLabels).to(device) # transfer to tensor
     for j in range(5000):
         image_path = os.path.join(images_dir, "%s.jpg" % j)
         image = PIL.Image.open(image_path).convert("RGB")

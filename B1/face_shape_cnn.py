@@ -1,5 +1,5 @@
 import torch
-
+import livelossplot
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
@@ -10,15 +10,15 @@ from B1 import extract_data_cnn as get_data
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 num_class = 5
-epoch = 100
+epoch = 50
 
-learning_rate = 0.001
+learning_rate = 0.00001
 
 x_train, y_train = get_data.get_train_data()
-x_train = x_train.reshape(10000, 3, 64, 64)
+x_train = x_train.reshape(10000, 3, 64, 64) # match the input of convolution layer
 #print(np.shape(x_train))
 train = torch.utils.data.TensorDataset(x_train, y_train)
-train_data = DataLoader(train, batch_size=128, shuffle=True)
+train_data = DataLoader(train, batch_size=128, shuffle=True) # cut train data into batches
 
 x_test, y_test = get_data.get_test_data()
 x_test = x_test.reshape(2500, 3, 64, 64)
@@ -26,11 +26,11 @@ test_set = torch.utils.data.TensorDataset(x_test, y_test)
 
 
 
-class Conv_net(nn.Module):
+class Conv_net(nn.Module): # define the network structure
     def __init__(self):
         super(Conv_net, self).__init__()
         self.net=nn.Sequential(
-            nn.Conv2d(3, 16, kernel_size=3, padding=1, stride=2),
+            nn.Conv2d(3, 16, kernel_size=3, padding=1, stride=2), # input channel=3, output channel=16
             nn.ReLU(),
             #nn.MaxPool2d(2),
             nn.Conv2d(16, 32, kernel_size=3, padding=1, stride=2),
@@ -46,9 +46,9 @@ class Conv_net(nn.Module):
 
             nn.Flatten(),
 
-            nn.Linear(256*2*2, 64*2*2),
-            nn.Linear(64*2*2, 32*2*2),
-            nn.Linear(32*2*2, num_class)
+            nn.Linear(1024, 256), # fully connected layer
+            nn.Linear(256, 128),
+            nn.Linear(128, num_class)
         )
 
     def forward(self, x):
@@ -60,12 +60,12 @@ convolution = Conv_net().to(device)
 
 
 
-def losses(pred, correct):
+def losses(pred, correct): # return the loss
     get_loss = nn.CrossEntropyLoss()
     return get_loss(pred, correct)
 
 optimizer = torch.optim.Adam(convolution.parameters(), lr=learning_rate, weight_decay=0.00001)
-
+accu = livelossplot.PlotLosses()
 for i in range(epoch):
     loss_fin = 0
     accuracy = 0
@@ -73,7 +73,7 @@ for i in range(epoch):
         image, label = data
         #print(np.shape(image))
         #print(np.shape(label))
-        pred = convolution(image)
+        pred = convolution(image) # get predicted value
         optimizer.zero_grad()
         loss = losses(pred, label)
         pred_label = torch.argmax(pred, dim=1)
@@ -92,11 +92,12 @@ for i in range(epoch):
             num_correct += 1
     test_accuracy = num_correct / len(test_set)
     loss_of_epoch = loss_fin / len(train_data)
-
+    accu.update({"test accuracy": test_accuracy})
     print("Epoch: %s" % (i))
     print("loss: %s" % (loss_of_epoch))
     print("Training_accuracy: %s" % accuracy)
     print("test accuracy: %s" % test_accuracy)
+accu.send() # print the graph of test accuracy
 
 
 

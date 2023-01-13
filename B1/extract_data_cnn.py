@@ -22,31 +22,35 @@ images_dir_t = os.path.join(basedir_t,'img')
 labels_dir_t = './Datasets/cartoon_set_test/labels.csv'
 
 def get_train_data():
+    '''
+    read image files and csv file
+    :return: tensor of image data and labels
+    '''
     trainData = []
     trainLabels = []
     with open (labels_dir, "r") as labels:
-        scan = csv.reader(labels, delimiter="\t")
+        scan = csv.reader(labels, delimiter="\t")  # remove space in the column
         trainLabel = list(scan)
         for i in range(10000):
-            trainLabels.append(int(trainLabel[i+1][2]))
-    trainLabels = torch.tensor(trainLabels).to(device)
+            trainLabels.append(int(trainLabel[i+1][2])) # select the 3rd column
+    trainLabels = torch.tensor(trainLabels).to(device) # convert to tensor
     for j in range(10000):
         image_path = os.path.join(images_dir, "%s.png" % j)
-        image = PIL.Image.open(image_path).convert("RGB")
+        image = PIL.Image.open(image_path).convert("RGB") # reduce channel from 4 to 3
         image = image.resize((64, 64), Image.ANTIALIAS)
 
         image = tf.convert_to_tensor(image)
         trainData.append(image)
         #print(trainData)
-    trainData = np.array(trainData, np.float32)
+    trainData = np.array(trainData, np.float32) # convert to array
     #print(np.shape(trainData))
-    trainData = torch.tensor(trainData)
+    trainData = torch.tensor(trainData)# convert to tensor
     #print(type(trainLabels))
     #print(type(trainData))
     return trainData, trainLabels
 
 
-def get_test_data():
+def get_test_data(): # same function with previous one
     testData = []
     testLabels = []
     with open (labels_dir_t, "r") as labels:
