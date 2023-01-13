@@ -14,7 +14,7 @@ The dataset file is empty when submitting the assignment, when you upload datase
 ![sample](./sample.png?raw=true)
 
 please do not include any extra files or folders, wrong directory will cause failure of execution. In order to maintain this file in github,
-L ieave one picture in the file, please delete it when using this file
+I leave one picture in the file, please delete it when using this file
 
 
 ## Comments of this code
